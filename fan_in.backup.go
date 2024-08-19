@@ -45,16 +45,15 @@ func final_receiver(ch <-chan string, done chan<- bool) {
 
 func main() {
 	var wg sync.WaitGroup
-	//var agg_wg sync.WaitGroup
+	var agg_wg sync.WaitGroup
 
 	ch1 := make(chan string)
 	ch2 := make(chan string)
 	ch3 := make(chan string)
 	ch4 := make(chan string)
 
-	//agg_ch := make(chan string)
-
-	//done := make(chan bool)
+	agg_ch := make(chan string)
+	done := make(chan bool)
 
 	wg.Add(1)
 	go upstream_sender(ch1, 1, &wg)
@@ -71,21 +70,17 @@ func main() {
 	close(ch3)
 	close(ch4)
 
-	/*
-		agg_wg.Add(4)
-		go aggregator(agg_ch, ch1, &agg_wg)
-		go aggregator(agg_ch, ch2, &agg_wg)
-		go aggregator(agg_ch, ch3, &agg_wg)
-		go aggregator(agg_ch, ch4, &agg_wg)
-		agg_wg.Wait()
+	agg_wg.Add(4)
+	go aggregator(agg_ch, ch1, &agg_wg)
+	go aggregator(agg_ch, ch2, &agg_wg)
+	go aggregator(agg_ch, ch3, &agg_wg)
+	go aggregator(agg_ch, ch4, &agg_wg)
+	agg_wg.Wait()
 
-		close(agg_ch)
+	close(agg_ch)
 
-		go final_receiver(agg_ch, done)
+	go final_receiver(agg_ch, done)
 
-		<-done
-	*/
-
+	<-done
 	fmt.Println("Finished")
-
 }
