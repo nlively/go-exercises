@@ -12,7 +12,9 @@ import (
 	"sync"
 )
 
-func upstream_sender(ch chan<- string, stream_num int, done chan<- bool) {
+func upstream_sender(ch chan<- string, stream_num int, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	fmt.Println("Starting stream", stream_num)
 	max := rand.Intn(100)
 	fmt.Printf("[stream %d]: %d messages\n", stream_num, max)
@@ -24,8 +26,6 @@ func upstream_sender(ch chan<- string, stream_num int, done chan<- bool) {
 
 	//close(ch)
 	fmt.Println("Done with stream", stream_num)
-
-	done <- true
 }
 
 func aggregator(agg_ch chan<- string, upstream_ch <-chan string, wg *sync.WaitGroup) {
@@ -45,25 +45,24 @@ func final_receiver(ch <-chan string, done chan<- bool) {
 
 func main() {
 	var wg sync.WaitGroup
-	//var agg_wg sync.WaitGroup
+	var agg_wg sync.WaitGroup
 
 	ch1 := make(chan string)
 	ch2 := make(chan string)
 	ch3 := make(chan string)
 	ch4 := make(chan string)
 
-	//agg_ch := make(chan string)
+	agg_ch := make(chan string)
+	done := make(chan bool)
 
-	done := make(chan bool, 4)
-
 	wg.Add(1)
-	go upstream_sender(ch1, 1, done)
+	go upstream_sender(ch1, 1, &wg)
 	wg.Add(1)
-	go upstream_sender(ch2, 2, done)
+	go upstream_sender(ch2, 2, &wg)
 	wg.Add(1)
-	go upstream_sender(ch3, 3, done)
+	go upstream_sender(ch3, 3, &wg)
 	wg.Add(1)
-	go upstream_sender(ch4, 4, done)
+	go upstream_sender(ch4, 4, &wg)
 	wg.Wait()
 
 	close(ch1)
@@ -71,22 +70,17 @@ func main() {
 	close(ch3)
 	close(ch4)
 
-	/*
-		agg_wg.Add(4)
-		go aggregator(agg_ch, ch1, &agg_wg)
-		go aggregator(agg_ch, ch2, &agg_wg)
-		go aggregator(agg_ch, ch3, &agg_wg)
-		go aggregator(agg_ch, ch4, &agg_wg)
-		agg_wg.Wait()
+	agg_wg.Add(4)
+	go aggregator(agg_ch, ch1, &agg_wg)
+	go aggregator(agg_ch, ch2, &agg_wg)
+	go aggregator(agg_ch, ch3, &agg_wg)
+	go aggregator(agg_ch, ch4, &agg_wg)
+	agg_wg.Wait()
 
-		close(agg_ch)
+	close(agg_ch)
 
-		go final_receiver(agg_ch, done)
+	go final_receiver(agg_ch, done)
 
-		<-done
-	*/
 	<-done
-
 	fmt.Println("Finished")
-
 }
