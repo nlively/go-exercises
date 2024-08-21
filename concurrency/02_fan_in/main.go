@@ -4,7 +4,7 @@ Basic Goroutines and Channels
 Implement a "fan-in" function that takes multiple channels as input and multiplexes the messages onto a single channel. Use this function to merge the outputs of two different goroutines generating sequences of numbers.
 */
 
-package fan_in
+package main
 
 import (
 	"fmt"

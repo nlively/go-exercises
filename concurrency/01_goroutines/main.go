@@ -6,7 +6,7 @@ Write a program that starts two goroutines. The first goroutine should generate 
 
 */
 
-package goroutines
+package main
 
 import (
 	"fmt"
