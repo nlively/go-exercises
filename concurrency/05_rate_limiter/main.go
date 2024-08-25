@@ -17,10 +17,17 @@ func main() {
 	defer ticker.Stop()
 
 	ch := make(chan struct{}, 1)
+	done := make(chan bool)
 
+	// This is how tickers work in Go.  A goroutine responds to each "tick"
+	// at the ticker's specified interval as long as the ticker is running.
 	go func() {
+		// The ticker regulates how fast this loop runs
 		for i := range ticker.C {
 			select {
+			case <-done:
+				fmt.Println("received DONE signal")
+				return
 			case ch <- struct{}{}:
 				fmt.Println("Token sent at", i)
 			default:
@@ -29,13 +36,19 @@ func main() {
 		}
 	}()
 
+	// A separate thread that runs up to 100 times, and whose speed is regulated
+	// by the speed at which items are fed into the channel
 	go func() {
-		for i := 0; i < 100; i++ {
+		for i := 0; i < 15; i++ {
 			fmt.Printf("Attempting operation %d at %v\n", i, time.Now())
+			// Block until channel has data
 			<-ch
 			fmt.Printf("Completed operation %d at %v\n", i, time.Now())
+			// Pause before iterating through the loop
+			time.Sleep(1000 * time.Millisecond)
 		}
+		done <- true
 	}()
 
-	time.Sleep(30 * time.Second)
+	time.Sleep(60 * time.Second)
 }
