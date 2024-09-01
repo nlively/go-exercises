@@ -1,84 +1,52 @@
 package main
 
-import "math/rand"
+import (
+	"log"
+	"math/rand"
 
-const (
-	GRID_WIDTH  = 100
-	GRID_HEIGHT = 100
+	"github.com/nlively/go-exercises/chase_simulation/structures"
 
-	LEFT_EDGE   = 0
-	TOP_EDGE    = 1
-	RIGHT_EDGE  = 2
-	BOTTOM_EDGE = 3
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func initializeGrid() Grid {
-	grid := Grid{}
-	grid.Cells = make([][]Cell, GRID_HEIGHT)
-	for i := 0; i < GRID_HEIGHT; i++ {
-		grid.Cells[i] = make([]Cell, GRID_WIDTH)
-	}
-	return grid
+const (
+	GRID_WIDTH  = 60
+	GRID_HEIGHT = 40
+)
+
+type Game struct {
+	grid *structures.Grid
 }
 
-func addRandomExit(grid Grid) {
-	var x, y int
-	// Randomize edge
-	edge := rand.Intn(4)
-	switch edge {
-	case LEFT_EDGE:
-		x = 0
-		y = rand.Intn(GRID_HEIGHT)
-	case TOP_EDGE:
-		x = rand.Intn(GRID_WIDTH)
-		y = 0
-	case RIGHT_EDGE:
-		x = GRID_WIDTH - 1
-		y = rand.Intn(GRID_HEIGHT)
-	case BOTTOM_EDGE:
-		x = rand.Intn(GRID_WIDTH)
-		y = GRID_HEIGHT - 1
-	}
-
-	exit := Exit{
-		position: Point{x, y},
-	}
-
-	grid.PlaceObject(&exit)
+func (g *Game) Update() error {
+	return nil
 }
 
-func addRandomRoom(grid Grid) {
-	// Randomize width and height
-	width := rand.Intn(8) + 1
-	height := rand.Intn(8) + 1
+func (g *Game) Draw(screen *ebiten.Image) {
+	// ebitenutil.DebugPrint(screen, "Hello, World!")
 
-	var position Point
-	for {
-		// Randomize position
-		x := rand.Intn(GRID_WIDTH - width)
-		y := rand.Intn(GRID_HEIGHT - height)
-		position = Point{x, y}
+	g.grid.RenderImage(screen)
+}
 
-		if grid.CanSafelyPlaceObject(Point{x, y}, width, height) {
-			break
-		}
-	}
-
-	room := Room{
-		position: position,
-		width:    width,
-		height:   height,
-	}
-
-	grid.PlaceObject(&room)
-	addRandomExit(grid)
-	for i := 0; i < rand.Intn(5)+3; i++ {
-		addRandomRoom(grid)
-	}
+func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	return 320, 240
 }
 
 func main() {
-	grid := initializeGrid()
+	grid := structures.NewGrid(GRID_WIDTH, GRID_HEIGHT)
 
-	addRandomExit(grid)
+	grid.AddRandomExit()
+	for i := 0; i < rand.Intn(5)+3; i++ {
+		grid.AddRandomRoom()
+	}
+	grid.PlacePlayers()
+
+	game := &Game{grid: grid}
+
+	ebiten.SetTPS(2) // game loop advances twice a second
+	ebiten.SetWindowSize(640, 480)
+	ebiten.SetWindowTitle("Hello, World!")
+	if err := ebiten.RunGame(game); err != nil {
+		log.Fatal(err)
+	}
 }
