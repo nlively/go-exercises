@@ -4,6 +4,8 @@ type Player struct {
 	position        Point
 	visibilityRange int
 	speed           int // cells per turn
+
+	cellMap [][]GridObjectType
 }
 
 func (p *Player) Position() Point {
