@@ -162,14 +162,14 @@ func main() {
 	// Randomize player's orientation
 	player.Orientation = rand.Float64() * 2 * 3.14159
 	player.Speed = 1
-	player.VisibilityRange = 5
+	player.VisibilityRange = 10
 
 	game := &Game{
 		Grid:   grid,
 		Player: player,
 	}
 
-	ebiten.SetTPS(2) // game loop advances twice a second
+	ebiten.SetTPS(6) // game loop advances twice a second
 	ebiten.SetWindowSize(800, 600)
 	ebiten.SetWindowTitle("Hello, World!")
 	if err := ebiten.RunGame(game); err != nil {
